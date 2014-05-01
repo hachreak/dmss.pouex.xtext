@@ -1,0 +1,123 @@
+Game index {
+	Pouex Tux {
+		bodyparts {
+			BodyPart body {
+				image "body.png" width 190 height 179 left 0 top 0 subparts {
+					BodyPart eyebrows {
+						image "eyebrows.png" width 76 height 32 left 58 top 0
+					},
+					BodyPart eye_dx {
+						image "eye_dx.png" width 37 height 45 left -20 top 14
+					},
+					BodyPart eye_sx {
+						image "eye_sx.png" width 35 height 34 left -25 top 11
+					},
+					BodyPart mouth {
+						image "mouth.png" width 30 height 24 left -80 top 28
+					},
+					BodyPart arm_dx {
+						image "arm_dx.png" width 37 height 61 left 10 top 0
+					},
+					BodyPart arm_sx {
+						image "arm_sx.png" width 37 height 61 left 100 top 0
+					},
+					BodyPart foot_dx {
+						image "foot_dx.png" width 61 height 31 left -50 top 48
+					},
+					BodyPart foot_sx {
+						image "foot_sx.png" width 61 height 31 left 90 top 13
+					}
+				}
+			}
+		}
+		features {
+			Physic Weight {
+				default 20.0 minimum 5.0 maximum 100.0 type positive MeasurementUnit kg
+			},
+			Emotional Happiness {
+				default 3.0 minimum 0.0 maximum 10.0 type positive MeasurementUnit hp
+			},
+			Physic Dirty {
+				default 30.0 minimum 0.0 maximum 100.0 type positive MeasurementUnit
+				dirtiness
+			},
+			Physic Age {
+				default 0.0 minimum 0.0 maximum 100.0 type positive MeasurementUnit years
+			},
+			Physic Hungry {
+				default 10.0 minimum 0.0 maximum 100.0 type positive
+			}
+		}
+		actions {
+			enable PouexAction Play {
+				influences {
+					Weight -= 1.0,
+					Happiness += 1.0,
+					Dirty += 5.0,
+					Hungry += 5.0
+				}
+			},
+			enable PouexAction Eat {
+				influences {
+					Weight += 10.0,
+					Hungry -= 5.0
+				}
+			},
+			enable PouexAction Clean {
+				influences {
+					Happiness -= 1.0,
+					Dirty -= 15.0
+				}
+			},
+			enable TimeEvent "happy birthday" {
+				eachMillisec 10000 influences {
+					Age += 1.0
+				}
+			},
+			enable TimeEvent "each 1s" {
+				eachMillisec 1000 influences {
+					Hungry += 0.01
+				}
+			}
+		}
+		states {
+			State Happy {
+				activationConditions {
+					[max] "Pouex is happy" Happiness > 7.0 [/max]
+				}
+				bodyAlterations {
+					BodyAlteration {
+						image "mouth_happy.png" bodyPart mouth
+					}
+				}
+			},
+			StateDead TheEnd {
+				activationConditions {
+					[max] "Pouex died for obesity" Weight > 80.0 [/max] 
+					[min] "if is not happy, died" Happiness < 1.0 [/min] 
+					[max] "if very old" Age > 99.0 [/max] 
+					[and] "if hungry and dirty" 
+					  [state] "if hungry" Hungry [/state] 
+					  [state] "and dirty" Dirty [/state] 
+					[/and] 
+					[max] "if very hungry" Hungry > 99.0 [/max]
+				}
+			},
+			State Dirty {
+				activationConditions {
+					[max] "if very much dirty" Dirty > 80.0 [/max]
+				}
+				bodyAlterations {
+					BodyAlteration {
+						image "body_dirty.png" bodyPart body
+					}
+				}
+			},
+			State Hungry {
+				activationConditions {
+					[max] "very hungry" Hungry > 80.0 [/max]
+				}
+			}
+		}
+	}
+}

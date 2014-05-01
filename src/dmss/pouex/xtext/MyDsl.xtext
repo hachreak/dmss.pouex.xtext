@@ -1,0 +1,189 @@
+/**
+ * Copyright (C) 2014 Leonardo Rossi <leonardo.rossi@studenti.unipr.it>
+ *
+ * This source code is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This source code is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this source code; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ */
+ 
+grammar dmss.pouex.xtext.MyDsl with org.eclipse.xtext.common.Terminals
+
+import "http://pouexmm/1.0" 
+import "http://www.eclipse.org/emf/2002/Ecore" as ecore
+
+Game returns Game:
+	'Game'
+	name=EString
+	'{'
+		pouex=Pouex
+	'}';
+
+Action returns Action:
+	TimeEvent | PouexAction | RepeatedAction_Impl;
+
+State returns State:
+	State_Impl | StateDead;
+
+Feature returns Feature:
+	Physic | Emotional;
+
+
+ActivationCondition returns ActivationCondition:
+	MinThresholdActivationCondition | MaxThresholdActivationCondition | StateActivationCondition | AndLogicActivationCondition | OrLogicActivationCondition;
+
+Pouex returns Pouex:
+	'Pouex'
+	name=EString
+	'{'
+		('birthday' birthday=EString)?
+		'bodyparts' '{' bodyparts+=BodyPart ( "," bodyparts+=BodyPart)* '}' 
+		('features' '{' features+=Feature ( "," features+=Feature)* '}' )?
+		('actions' '{' actions+=Action ( "," actions+=Action)* '}' )?
+		('states' '{' states+=State ( "," states+=State)* '}' )?
+	'}';
+
+EString returns ecore::EString:
+	STRING | ID;
+
+State_Impl returns State:
+	'State'
+	name=EString
+	'{'
+		'activationConditions' '{' activationConditions+=ActivationCondition ( activationConditions+=ActivationCondition)* '}' 
+		('bodyAlterations' '{' bodyAlterations+=BodyAlteration ( "," bodyAlterations+=BodyAlteration)* '}' )?
+	'}';
+
+BodyPart returns BodyPart:
+	'BodyPart'
+	name=EString
+	'{'
+		('image' image=EString)?
+		'width' width=EInt
+		'height' height=EInt
+		('left' left=EInt)?
+		('top' top=EInt)?
+		('subparts' '{' subparts+=BodyPart ( "," subparts+=BodyPart)* '}' )?
+	'}';
+
+Influence returns Influence:
+	feature=[Feature|EString] operator=MathematicOperator value=EDouble 
+;
+
+EBoolean returns ecore::EBoolean:
+	'true' | 'false';
+
+TimeEvent returns TimeEvent:
+	enable?='enable'
+	'TimeEvent'
+	name=EString
+	'{'
+		'eachMillisec' eachMillisec=EInt
+		('influences' '{' influences+=Influence ( "," influences+=Influence)* '}' )?
+	'}';
+
+PouexAction returns PouexAction:
+	(enable?='enable')?
+	'PouexAction'
+	name=EString
+	'{'
+		('influences' '{' influences+=Influence ( "," influences+=Influence)* '}' )?
+	'}';
+
+RepeatedAction_Impl returns RepeatedAction:
+	enable?='enable'
+	'RepeatedAction'
+	name=EString
+	'{'
+		'eachMillisec' eachMillisec=EInt
+		('influences' '{' influences+=Influence ( "," influences+=Influence)* '}' )?
+	'}';
+
+EDouble returns ecore::EDouble:
+	'-'? INT? '.' INT (('E'|'e') '-'? INT)?;
+
+EInt returns ecore::EInt:
+	'-'? INT;
+
+BodyAlteration returns BodyAlteration:
+	'BodyAlteration'
+	'{'
+		('image' image=EString)?
+		'bodyPart' bodyPart=[BodyPart|EString]
+	'}';
+
+StateDead returns StateDead:
+	'StateDead'
+	name=EString
+	'{'
+		'activationConditions' '{' activationConditions+=ActivationCondition ( activationConditions+=ActivationCondition)* '}' 
+		('bodyAlterations' '{' bodyAlterations+=BodyAlteration ( "," bodyAlterations+=BodyAlteration)* '}' )?
+	'}';
+
+MinThresholdActivationCondition returns MinThresholdActivationCondition:
+	'[min]'
+		(name=EString)? feature=[Feature|EString] '<' threshold=EDouble
+	'[/min]';
+
+MaxThresholdActivationCondition returns MaxThresholdActivationCondition:
+	'[max]'
+		(name=EString)? feature=[Feature|EString] '>' threshold=EDouble
+	'[/max]';
+
+StateActivationCondition returns StateActivationCondition:
+	'[state]'
+		(name=EString)? (condition?='!')? state=[State|EString]
+	'[/state]';
+
+AndLogicActivationCondition returns AndLogicActivationCondition:
+	'[and]'
+		(name=EString)? terms+=ActivationCondition ( terms+=ActivationCondition)*   
+	'[/and]';
+
+OrLogicActivationCondition returns OrLogicActivationCondition:
+	'[or]'
+		(name=EString)? terms+=ActivationCondition ( terms+=ActivationCondition)* 
+	'[/or]';
+
+Physic returns Physic:
+	'Physic'
+	name=EString
+	'{'
+		'default' default=EDouble
+		'minimum' minimum=EDouble
+		'maximum' maximum=EDouble
+		'type' type=InfluenceType
+		('MeasurementUnit' MeasurementUnit=EString)?
+	'}';
+
+Emotional returns Emotional:
+	'Emotional'
+	name=EString
+	'{'
+		'default' default=EDouble
+		'minimum' minimum=EDouble
+		'maximum' maximum=EDouble
+		'type' type=InfluenceType
+		('MeasurementUnit' MeasurementUnit=EString)?
+	'}';
+
+enum InfluenceType:
+	POSITIVE = 'positive' | NEGATIVE = 'negative'
+; 
+
+enum MathematicOperator: 
+	ADDITION = '+=' | 
+	SUBTRACTION = '-=' | 
+	MULTIPLICATION = '*=' | 
+	DIVISION = '/=' | 
+	MODULE = '%=';
