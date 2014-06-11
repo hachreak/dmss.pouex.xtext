@@ -40,7 +40,8 @@ Feature returns Feature:
 
 
 ActivationCondition returns ActivationCondition:
-	MinThresholdActivationCondition | MaxThresholdActivationCondition | StateActivationCondition | AndLogicActivationCondition | OrLogicActivationCondition;
+	MinThresholdActivationCondition | MaxThresholdActivationCondition | 
+	StateActivationCondition | AndLogicActivationCondition | OrLogicActivationCondition;
 
 Pouex returns Pouex:
 	'Pouex'
@@ -68,7 +69,7 @@ BodyPart returns BodyPart:
 	'BodyPart'
 	name=EString
 	'{'
-		('image' image=EString)?
+		'image' image=EString
 		'width' width=EInt
 		'height' height=EInt
 		('left' left=EInt)?
